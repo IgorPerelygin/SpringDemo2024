@@ -1,6 +1,8 @@
 package com.example.SpringDemo.controllers;
 import com.example.SpringDemo.model.Article;
+import com.example.SpringDemo.model.Comment;
 import com.example.SpringDemo.repo.ArticleRepo;
+import com.example.SpringDemo.repo.CommentRepo;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -16,6 +18,7 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.Base64;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -24,6 +27,8 @@ public class ArticleController {
 
     @Autowired
     private ArticleRepo articleRepo;
+    @Autowired
+    CommentRepo commentRepo;
 
     @GetMapping("/hello")
     public String hello(@RequestParam(value = "name", defaultValue = "World") String name) {
@@ -43,7 +48,8 @@ public class ArticleController {
     public String showArticle(@PathVariable(value = "id") long id, Model model){
         Optional<Article> article = articleRepo.findById(id);
         model.addAttribute("article", article.get());
-        //articleRepo.deleteById(id);
+        List<Comment> comments = commentRepo.findByArticleId(id);
+        model.addAttribute("comments", comments);
         return "article";
     }
 
@@ -60,14 +66,14 @@ public class ArticleController {
     public String addArticle(@RequestParam String title, @RequestParam String content, @RequestParam String author){
         Document document = Jsoup.parse(content);
         Element img = document.selectFirst("img");
-        if(img != null) {
+        if(img != null){
             String src = img.attr("src");
             String base64String = (src.split(",")[1]);
             byte[] buff = Base64.getDecoder().decode(base64String);
             UUID uuid = UUID.randomUUID();
             String extension = src.split(",")[0].split("/")[1].split(";")[0];
-            String fileName = uuid.toString() + "." + extension;
-            String upload = "D:/files/" + fileName;
+            String fileName = uuid.toString()+"."+extension;
+            String upload = "C:/java/files/"+fileName;
             img.attr("src", upload);
             try {
                 FileOutputStream fos = new FileOutputStream(upload);

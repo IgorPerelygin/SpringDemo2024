@@ -5,6 +5,7 @@ import com.example.SpringDemo.repo.UserRepo;
 import jakarta.websocket.server.PathParam;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -18,7 +19,8 @@ import java.util.Optional;
 public class UserController {
     @Autowired
     UserRepo userRepo;
-
+    @Autowired
+    PasswordEncoder passwordEncoder;
     @GetMapping("/user")
     public String user(Authentication authentication){
         System.out.println(authentication.getPrincipal());
@@ -42,6 +44,7 @@ public class UserController {
         Optional<User> oUser = userRepo.findByEmail(email);
 
         if (oUser.isEmpty()) {
+            pass = passwordEncoder.encode(pass);
             User user = new User(name, lastname, email, pass);
             userRepo.save(user);
             System.out.println("Пользователь "+name+" зарегистрирован");
